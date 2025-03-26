@@ -3,5 +3,9 @@
       "title": "Programming Project Platform",
       "description": "Websites | Trading Bots | Desktop Software",
       "submitLink": "Submit a New Project"
+    },
+    "submitProject": {
+      "title": "Submit a New Project",
+      "submitButton": "Submit"
     }
   }
