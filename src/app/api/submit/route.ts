@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
-
-const projectsFilePath = path.join(process.cwd(), "projects.json");
+import { getDb } from "../../../database";
 
 export async function POST(request: NextRequest) {
   const data = await request.json();
   console.log("Received project:", data);
 
-  // خوندن فایل فعلی
-  const fileContent = await fs.readFile(projectsFilePath, "utf-8");
-  const projects = JSON.parse(fileContent);
+  const db = await getDb();
+  await db.run(
+    "INSERT INTO projects (projectName, projectType, locale, timestamp) VALUES (?, ?, ?, ?)",
+    [data.projectName, data.projectType, data.locale, new Date().toISOString()]
+  );
 
-  // اضافه کردن پروژه جدید
-  projects.push({ ...data, timestamp: new Date().toISOString() });
-
-  // نوشتن به فایل
-  await fs.writeFile(projectsFilePath, JSON.stringify(projects, null, 2));
-
-  return NextResponse.json({ message: "پروژه با موفقیت دریافت شد | Project received successfully", data }, { status: 200 });
+  return NextResponse.json(
+    { message: "پروژه با موفقیت دریافت شد | Project received successfully", data },
+    { status: 200 }
+  );
 }

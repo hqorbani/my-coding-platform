@@ -1,7 +1,6 @@
 import { getTranslations } from "../../../lib/getTranslations";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
-import fs from "fs/promises";
-import path from "path";
+import { getDb } from "../../../database";
 
 interface PageParams {
   locale: string;
@@ -14,17 +13,16 @@ export default async function Projects({ params }: { params: PageParams }) {
     title: locale === "fa" ? "پروژه‌های ثبت‌شده" : "Registered Projects",
   };
 
-  const projectsFilePath = path.join(process.cwd(), "projects.json");
-  const fileContent = await fs.readFile(projectsFilePath, "utf-8");
-  const projects = JSON.parse(fileContent);
+  const db = await getDb();
+  const projects = await db.all("SELECT * FROM projects");
 
   return (
     <div className="min-h-screen p-8 flex flex-col items-center">
       <LanguageSwitcher />
       <h1 className="text-3xl font-bold mb-6">{t.title}</h1>
       <ul className="w-full max-w-md">
-        {projects.map((project: any, index: number) => (
-          <li key={index} className="mb-4 p-4 border rounded">
+        {projects.map((project: any) => (
+          <li key={project.id} className="mb-4 p-4 border rounded">
             <p>
               <strong>{locale === "fa" ? "نام پروژه" : "Project Name"}:</strong> {project.projectName}
             </p>
