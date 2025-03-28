@@ -21,7 +21,10 @@ export default async function Home({ params }: { params: PageParams }) {
           {t.submitLink}
         </Link>
         <Link href={`/${locale}/projects`} className="px-4 py-2 bg-gray-600 text-white rounded">
-          {t.projectsLink}
+          {locale === "fa" ? "مشاهده پروژه‌ها" : "View Projects"}
+        </Link>
+        <Link href={`/${locale}/admin`} className="px-4 py-2 bg-green-600 text-white rounded">
+          {locale === "fa" ? "پنل مدیر" : "Admin Panel"}
         </Link>
       </div>
     </div>

@@ -11,5 +11,8 @@
     },
     "projects": {
       "title": "Registered Projects"
+    },
+    "admin": {
+      "title": "Admin Panel"
     }
   }
