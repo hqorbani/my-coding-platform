@@ -8,18 +8,19 @@ async function getDb() {
     driver: sqlite3.Database,
   });
 
-  // جدول سفارش‌های مشتری‌ها
+  // جدول سفارش‌ها با ستون‌های جدید
   await db.exec(`
     CREATE TABLE IF NOT EXISTS projects (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       projectName TEXT NOT NULL,
+      description TEXT,  -- ستون جدید برای توضیحات
+      files TEXT,        -- مسیر فایل‌ها به‌صورت JSON string
       projectType TEXT NOT NULL,
       locale TEXT NOT NULL,
       timestamp TEXT NOT NULL
     )
   `);
 
-  // جدول کاربران
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,7 +29,6 @@ async function getDb() {
     )
   `);
 
-  // جدول نمونه‌کارهای ادمین
   await db.exec(`
     CREATE TABLE IF NOT EXISTS portfolio (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,20 +44,6 @@ async function getDb() {
     const hashedPassword = await bcrypt.hash("adminpass123", 10);
     await db.run("INSERT INTO users (username, password) VALUES (?, ?)", ["admin", hashedPassword]);
     console.log("Added default user: admin with hashed password");
-  }
-
-  // اضافه کردن نمونه‌کارهای پیش‌فرض (اختیاری)
-  const portfolioCount = await db.get("SELECT COUNT(*) as count FROM portfolio");
-  if (portfolioCount.count === 0) {
-    await db.run(
-      "INSERT INTO portfolio (title, description, projectType, timestamp) VALUES (?, ?, ?, ?)",
-      ["وبسایت نمونه", "یه وبسایت ساده برای تست", "website", new Date().toISOString()]
-    );
-    await db.run(
-      "INSERT INTO portfolio (title, description, projectType, timestamp) VALUES (?, ?, ?, ?)",
-      ["ربات تلگرام", "ربات اتوماسیون تلگرام", "trading-bot", new Date().toISOString()]
-    );
-    console.log("Added sample portfolio items");
   }
 
   return db;

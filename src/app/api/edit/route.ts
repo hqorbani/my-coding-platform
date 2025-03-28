@@ -2,12 +2,12 @@ const { NextRequest, NextResponse } = require("next/server");
 const { getDb } = require("../../../database");
 
 async function POST(request) {
-  const { id, projectName, projectType } = await request.json();
+  const { id, projectName, projectType, description } = await request.json();
 
   const db = await getDb();
   const result = await db.run(
-    "UPDATE projects SET projectName = ?, projectType = ? WHERE id = ?",
-    [projectName, projectType, id]
+    "UPDATE projects SET projectName = ?, projectType = ?, description = ? WHERE id = ?",
+    [projectName, projectType, description, id]
   );
 
   if (result.changes > 0) {

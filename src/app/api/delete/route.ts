@@ -1,14 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "../../../database";
+const { NextRequest, NextResponse } = require("next/server");
+const { getDb } = require("../../../database");
 
-export async function POST(request: NextRequest) {
+async function POST(request) {
   const { id } = await request.json();
-  if (!id) {
-    return NextResponse.json({ error: "ID required" }, { status: 400 });
-  }
 
   const db = await getDb();
-  await db.run("DELETE FROM projects WHERE id = ?", [id]);
+  const result = await db.run("DELETE FROM projects WHERE id = ?", [id]);
 
-  return NextResponse.json({ message: "پروژه حذف شد | Project deleted" }, { status: 200 });
+  if (result.changes > 0) {
+    return NextResponse.json({ message: "سفارش با موفقیت حذف شد" }, { status: 200 });
+  } else {
+    return NextResponse.json({ error: "خطا در حذف سفارش" }, { status: 400 });
+  }
 }
+
+module.exports = { POST };
