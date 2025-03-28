@@ -1,6 +1,6 @@
 import { getTranslations } from "../../../lib/getTranslations";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
-import ProjectForm from "../../components/ProjectForm";
+import LanguageSwitcher from "../../../components/LanguageSwitcher";
+import ProjectForm from "../../../components/ProjectForm";
 
 interface PageParams {
   locale: string;

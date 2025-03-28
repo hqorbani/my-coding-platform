@@ -1,5 +1,5 @@
 import { getTranslations } from "../../../lib/getTranslations";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
+import LanguageSwitcher from "../../../components/LanguageSwitcher";
 import { getDb } from "../../../database";
 
 interface PageParams {
