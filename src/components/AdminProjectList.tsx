@@ -72,6 +72,26 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
     }
   };
 
+  const handleDownload = async (file: string) => {
+    const response = await fetch(`/api/download?file=${encodeURIComponent(file)}`, {
+      credentials: "include", // مطمئن می‌شه کوکی‌ها ارسال بشن
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.split('/').pop() || "download";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } else {
+      alert(locale === "fa" ? "خطا در دانلود فایل" : "Error downloading file");
+    }
+  };
+
   const handleEditPortfolio = (item: PortfolioItem) => {
     setEditingId(item.id);
     setEditForm({ projectName: "", projectType: item.projectType, title: item.title, description: item.description || "" });
@@ -187,7 +207,12 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
                       <ul className="mt-2">
                         {JSON.parse(project.files).map((file: string, index: number) => (
                           <li key={index}>
-                            <a href={file} download className="text-blue-600 underline">{getFileName(file)}</a>
+                            <button
+                              onClick={() => handleDownload(file)}
+                              className="text-blue-600 underline"
+                            >
+                              {getFileName(file)}
+                            </button>
                           </li>
                         ))}
                       </ul>
