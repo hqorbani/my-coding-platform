@@ -1,25 +1,36 @@
-import sqlite from 'sqlite';
-import sqlite3 from 'sqlite3';
-import bcrypt from 'bcrypt';
-async function getDb() {
-  const db = await sqlite.open({
-    filename: "./projects.db",
+import { open, Database } from "sqlite";
+import sqlite3 from "sqlite3";
+import bcrypt from "bcrypt";
+
+// کش برای اتصال دیتابیس
+let cachedDb: Database<sqlite3.Database, sqlite3.Statement> | null = null;
+
+export async function getDb(): Promise<Database<sqlite3.Database, sqlite3.Statement>> {
+  // اگه اتصال قبلاً برقرار شده، همون رو برگردون
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  // باز کردن دیتابیس
+  const db = await open({
+    filename: "./projects.db", // مسیر دیتابیس تو ریشه پروژه
     driver: sqlite3.Database,
   });
 
-  // جدول سفارش‌ها با ستون‌های جدید
+  // ساخت جدول پروژه‌ها
   await db.exec(`
     CREATE TABLE IF NOT EXISTS projects (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       projectName TEXT NOT NULL,
-      description TEXT,  -- ستون جدید برای توضیحات
-      files TEXT,        -- مسیر فایل‌ها به‌صورت JSON string
+      description TEXT,
+      files TEXT,
       projectType TEXT NOT NULL,
       locale TEXT NOT NULL,
       timestamp TEXT NOT NULL
     )
   `);
 
+  // ساخت جدول کاربران
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,6 +39,7 @@ async function getDb() {
     )
   `);
 
+  // ساخت جدول پورتفولیو
   await db.exec(`
     CREATE TABLE IF NOT EXISTS portfolio (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,6 +50,7 @@ async function getDb() {
     )
   `);
 
+  // چک کردن و اضافه کردن کاربر پیش‌فرض
   const userExists = await db.get("SELECT * FROM users WHERE username = ?", ["admin"]);
   if (!userExists) {
     const hashedPassword = await bcrypt.hash("adminpass123", 10);
@@ -45,7 +58,7 @@ async function getDb() {
     console.log("Added default user: admin with hashed password");
   }
 
+  // کش کردن اتصال
+  cachedDb = db;
   return db;
 }
-
-module.exports = { getDb };

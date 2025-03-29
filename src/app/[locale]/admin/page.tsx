@@ -8,7 +8,7 @@ interface Params {
 }
 
 const AdminPage: NextPage<{ params: Params }> = async ({ params }) => {
-  const { locale } = params;
+  const { locale } = await params; 
   console.log("Server Rendering /fa/admin with locale:", locale);
 
   const db = await getDb();
