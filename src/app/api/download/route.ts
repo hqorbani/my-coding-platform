@@ -1,14 +1,25 @@
-const { NextRequest, NextResponse } = require("next/server");
-const { cookies } = require("next/headers");
-const fs = require("fs").promises;
-const path = require("path");
+import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import fs from "fs/promises";
+import path from "path";
 
-export async function GET(request) {
-  const cookieStore = await cookies();
-  const authCookie = cookieStore.get("admin-auth");
+const SECRET_KEY = process.env.JWT_SECRET;
 
-  if (!authCookie || authCookie.value !== "supersecretpassword") {
+export async function GET(request: NextRequest) {
+  if (!SECRET_KEY) {
+    throw new Error("JWT_SECRET is not defined in environment variables");
+  }
+
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    jwt.verify(token, SECRET_KEY);
+  } catch {
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
   const url = new URL(request.url);
@@ -29,7 +40,7 @@ export async function GET(request) {
         "Content-Type": "application/octet-stream",
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 }

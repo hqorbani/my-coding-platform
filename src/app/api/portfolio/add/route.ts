@@ -1,7 +1,7 @@
-const { NextRequest, NextResponse } = require("next/server");
-const { getDb } = require("../../../../database");
+import { NextRequest, NextResponse } from "next/server";
+import { getDb } from "../../../../database";
 
-async function POST(request) {
+async function POST(request: NextRequest) {
   const { title, description, projectType, timestamp } = await request.json();
 
   const db = await getDb();

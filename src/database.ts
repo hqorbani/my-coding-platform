@@ -1,7 +1,6 @@
-const sqlite = require("sqlite");
-const sqlite3 = require("sqlite3");
-const bcrypt = require("bcrypt");
-
+import sqlite from 'sqlite';
+import sqlite3 from 'sqlite3';
+import bcrypt from 'bcrypt';
 async function getDb() {
   const db = await sqlite.open({
     filename: "./projects.db",

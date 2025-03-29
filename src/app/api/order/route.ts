@@ -1,7 +1,7 @@
-const { NextRequest, NextResponse } = require("next/server");
-const { getDb } = require("../../../database");
-const fs = require("fs").promises;
-const path = require("path");
+import { NextResponse } from "next/server";
+import { getDb } from "../../../database"
+import fs from "fs/promises"
+import path from "path";
 
 export async function POST(request) {
   const formData = await request.formData();

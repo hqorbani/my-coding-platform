@@ -41,9 +41,13 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   };
 
   const handleSaveProject = async (id: number) => {
+    const token = localStorage.getItem("jwt_token");
     const response = await fetch("/api/edit", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
       body: JSON.stringify({ id, projectName: editForm.projectName, projectType: editForm.projectType, description: editForm.description }),
     });
 
@@ -60,12 +64,16 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   const handleDeleteProject = async (id: number) => {
     const confirmMessage = locale === "fa" ? "آیا مطمئن هستید که می‌خواهید این سفارش را حذف کنید؟" : "Are you sure you want to delete this order?";
     if (window.confirm(confirmMessage)) {
+      const token = localStorage.getItem("jwt_token");
       const response = await fetch("/api/delete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ id }),
       });
-
+      console.log("Delete response status:", response.status); // دیباگ
       if (response.ok) {
         setProjects(projects.filter((project) => project.id !== id));
       }
@@ -73,10 +81,14 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   };
 
   const handleDownload = async (file: string) => {
+    const token = localStorage.getItem("jwt_token");
+    console.log("Downloading with token:", token?.slice(0, 10) + "..."); // فقط 10 حرف اول توکن
     const response = await fetch(`/api/download?file=${encodeURIComponent(file)}`, {
-      credentials: "include", // مطمئن می‌شه کوکی‌ها ارسال بشن
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
     });
-
+    console.log("Download response status:", response.status); // دیباگ
     if (response.ok) {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -88,6 +100,7 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } else {
+      console.log("Download failed:", await response.text()); // دیباگ خطا
       alert(locale === "fa" ? "خطا در دانلود فایل" : "Error downloading file");
     }
   };
@@ -98,9 +111,13 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   };
 
   const handleSavePortfolio = async (id: number) => {
+    const token = localStorage.getItem("jwt_token");
     const response = await fetch("/api/portfolio/edit", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
       body: JSON.stringify({ id, title: editForm.title, description: editForm.description, projectType: editForm.projectType }),
     });
 
@@ -117,9 +134,13 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   const handleDeletePortfolio = async (id: number) => {
     const confirmMessage = locale === "fa" ? "آیا مطمئن هستید که می‌خواهید این نمونه‌کار را حذف کنید؟" : "Are you sure you want to delete this portfolio item?";
     if (window.confirm(confirmMessage)) {
+      const token = localStorage.getItem("jwt_token");
       const response = await fetch("/api/portfolio/delete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({ id }),
       });
 
@@ -130,9 +151,13 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   };
 
   const handleAddPortfolio = async () => {
+    const token = localStorage.getItem("jwt_token");
     const response = await fetch("/api/portfolio/add", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
       body: JSON.stringify({ ...newPortfolio, timestamp: new Date().toISOString() }),
     });
 
@@ -144,12 +169,8 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   };
 
   const handleLogout = async () => {
-    const response = await fetch("/api/logout", {
-      method: "POST",
-    });
-    if (response.ok) {
-      router.push(`/${locale}/login`);
-    }
+    localStorage.removeItem("jwt_token");
+    router.push(`/${locale}/login`);
   };
 
   const getFileName = (filePath: string) => {
