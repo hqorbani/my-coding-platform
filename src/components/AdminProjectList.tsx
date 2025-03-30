@@ -43,13 +43,10 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   };
 
   const handleSaveProject = async (id: number) => {
-    const token = localStorage.getItem("jwt_token");
     const response = await fetch("/api/edit", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ id, projectName: editForm.projectName, projectType: editForm.projectType, description: editForm.description }),
     });
 
@@ -180,6 +177,7 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
 
   const handleLogout = async () => {
     localStorage.removeItem("jwt_token");
+    await fetch("/api/logout", { method: "POST", credentials: "include" });
     router.push(`/${locale}/login`);
   };
 

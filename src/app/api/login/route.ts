@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-
-const SECRET_KEY = process.env.JWT_SECRET;
+import { getDb } from "../../../database";
+import { signToken } from "../../../lib/jwt";
 
 export async function POST(request: NextRequest) {
   const { username, password } = await request.json();
-
-  if (!SECRET_KEY) {
-    throw new Error("JWT_SECRET is not defined in environment variables");
-  }
-
-  if (username === "admin" && password === "123") {
-    const token = jwt.sign({ username: "admin" }, SECRET_KEY, { expiresIn: "1h" });
-    return NextResponse.json({ token }, { status: 200 });
-  } else {
+  const db = await getDb();
+  const user = await db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password]);
+  if (!user) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
+  const token = signToken({ id: user.id });
+  const response = NextResponse.json({ token }, { status: 200 });
+  response.cookies.set("jwt_token", token, {
+    httpOnly: true,
+    maxAge: 60 * 60,
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+  });
+  return response;
 }

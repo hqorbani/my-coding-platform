@@ -7,6 +7,7 @@ import path from "path";
 const SECRET_KEY = process.env.JWT_SECRET;
 
 export async function POST(request: NextRequest) {
+  
   try {
     if (!SECRET_KEY) {
       throw new Error("JWT_SECRET is not defined in environment variables");

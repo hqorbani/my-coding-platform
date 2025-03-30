@@ -1,7 +1,21 @@
+// src/app/api/edit/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "../../../database"; // بدون .ts
+import { getDb } from "../../../database"; // مسیر درست نسبت به src/app/api/edit
+import { verifyToken } from "../../../lib/jwt"; // مسیر نسبت به src/app/api/edit
 
 export async function POST(request: NextRequest) {
+  // چک کردن توکن
+  const token = request.cookies.get("jwt_token")?.value;
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    verifyToken(token); // استفاده از تابع متمرکز
+  } catch {
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  }
+
+  // منطق اصلی
   try {
     const { id, projectName, projectType, description }: { id: number; projectName: string; projectType: string; description?: string } = await request.json();
     if (!id || !projectName || !projectType) {

@@ -1,8 +1,11 @@
+// src/app/api/logout/route.ts
 import { NextResponse } from "next/server";
-async function POST() {
-  const response = NextResponse.json({ message: "خروج موفقیت‌آمیز" }, { status: 200 });
-  response.cookies.set("admin-auth", "", { path: "/", maxAge: 0 }); // پاک کردن کوکی
+
+export async function POST() {
+  const response = NextResponse.json({ message: "Logged out" }, { status: 200 });
+  response.cookies.set("jwt_token", "", {
+    maxAge: 0, // حذف کوکی
+    path: "/",
+  });
   return response;
 }
-
-module.exports = { POST };
