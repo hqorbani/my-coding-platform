@@ -26,23 +26,21 @@ export async function POST(request: NextRequest) {
     }
 
     // آپلود فایل‌ها
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = path.join(process.cwd(), "uploads");
     await fs.mkdir(uploadDir, { recursive: true });
     const filePaths: string[] = [];
 
     for (const file of files) {
       if (file instanceof File) {
-        const allowedTypes = ["image/jpeg", "image/png"]; // بعداً می‌تونی تغییر بدی
+        const allowedTypes = ["image/jpeg", "image/png"];
         if (!allowedTypes.includes(file.type)) {
           return NextResponse.json({ error: "نوع فایل مجاز نیست" }, { status: 400 });
         }
-        if (file.size > 5 * 1024 * 1024) {
-          return NextResponse.json({ error: "حجم فایل بیش از 5 مگابایت است" }, { status: 400 });
-        }
-
         const fileName = `${Date.now()}-${file.name}`;
         const filePath = path.join(uploadDir, fileName);
         await fs.writeFile(filePath, Buffer.from(await file.arrayBuffer()));
+        // چک کن فایل نوشته شده
+        await fs.access(filePath); // اگه فایل نباشه، خطا می‌ده
         filePaths.push(`/uploads/${fileName}`);
       }
     }

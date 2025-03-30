@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// import Image from "next/image"; // فعلاً لازم نیست
+import Image from "next/image";
 
 interface Project {
   id: number;
@@ -343,30 +343,36 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
                   <p><strong>{locale === "fa" ? "نوع پروژه" : "Project Type"}:</strong> {item.projectType}</p>
                   <p><strong>{locale === "fa" ? "زمان ثبت" : "Timestamp"}:</strong> {item.timestamp}</p>
                   {item.files && (
-                    <div className="mt-2">
-                      <strong>{locale === "fa" ? "تصاویر" : "Images"}:</strong>
-                      <div className="flex flex-wrap gap-2">
-                        {(() => {
-                          try {
-                            const files = typeof item.files === "string" ? JSON.parse(item.files) : item.files;
-                            return files.map((file: string, index: number) => (
-                              <img
-                                key={index}
-                                src={file}
-                                alt={`${item.title} image ${index + 1}`}
-                                width={100}
-                                height={100}
-                                className="object-cover rounded"
-                              />
-                            ));
-                          } catch (e) {
-                            console.error("Error parsing files:", e, "Files value:", item.files);
-                            return <span>خطا در بارگذاری تصاویر</span>;
-                          }
-                        })()}
-                      </div>
-                    </div>
-                  )}
+  <div className="mt-2">
+    <strong>{locale === "fa" ? "تصاویر" : "Images"}:</strong>
+    <div className="flex flex-wrap gap-2">
+      {(() => {
+        try {
+          const files = typeof item.files === "string" ? JSON.parse(item.files) : item.files;
+          console.log("Files for item", item.id, ":", files);
+          return files.map((file: string, index: number) => {
+            const fileName = file.split("/uploads/")[1]; // فقط نام فایل
+            const src = `/api/static/uploads/${fileName}`;
+            console.log("Rendering image with src:", src);
+            return (
+              <Image
+                key={index}
+                src={src}
+                alt={`${item.title} image ${index + 1}`}
+                width={100}
+                height={100}
+                className="object-cover rounded"
+              />
+            );
+          });
+        } catch (e) {
+          console.error("Error parsing files:", e, "Files value:", item.files);
+          return <span>خطا در بارگذاری تصاویر</span>;
+        }
+      })()}
+    </div>
+  </div>
+)}
                 </div>
                 <div>
                   <button onClick={() => handleEditPortfolio(item)} className="px-3 py-1 bg-yellow-600 text-white rounded mr-2">
