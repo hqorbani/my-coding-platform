@@ -2,13 +2,13 @@ import { getTranslations } from "../../../lib/getTranslations";
 import LanguageSwitcher from "../../../components/LanguageSwitcher";
 import ProjectForm from "../../../components/ProjectForm";
 
-interface PageParams {
+// تایپ برای params
+type Params = {
   locale: string;
-}
+};
 
-export default async function SubmitProject({ params }: { params: PageParams }) {
-  const awaitedParams = await params;
-  const { locale } = awaitedParams;
+export default async function SubmitProject({ params }: { params: Promise<Params> }) {
+  const { locale } = await params; // مستقیم await می‌کنیم
   const t = getTranslations(locale).submitProject || {
     title: locale === "fa" ? "ثبت پروژه جدید" : "Submit a New Project",
     submitButton: locale === "fa" ? "ارسال" : "Submit",

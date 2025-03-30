@@ -1,14 +1,14 @@
 import AdminProjectList from "../../../components/AdminProjectList";
 import { getDb } from "../../../database";
-import { NextPage } from "next";
 
-// تایپ‌ها رو از Next.js می‌گیریم
-interface Params {
+// تایپ برای params
+type Params = {
   locale: string;
-}
+};
 
-const AdminPage: NextPage<{ params: Params }> = async ({ params }) => {
-  const { locale } = await params; 
+// صفحه سرور-ساید با params به صورت Promise
+export default async function AdminPage({ params }: { params: Promise<Params> }) {
+  const { locale } = await params; // await کردن params
   console.log("Server Rendering /fa/admin with locale:", locale);
 
   const db = await getDb();
@@ -17,9 +17,11 @@ const AdminPage: NextPage<{ params: Params }> = async ({ params }) => {
 
   return (
     <div>
-      <AdminProjectList locale={locale} initialProjects={projects} initialPortfolio={portfolio} />
+      <AdminProjectList
+        locale={locale}
+        initialProjects={projects}
+        initialPortfolio={portfolio}
+      />
     </div>
   );
-};
-
-export default AdminPage;
+}

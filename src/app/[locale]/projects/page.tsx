@@ -1,47 +1,36 @@
-import { getTranslations } from "../../../lib/getTranslations";
-import LanguageSwitcher from "../../../components/LanguageSwitcher";
-import { getDb } from "../../../database";
+"use client";
+import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
-interface PageParams {
+type ProjectItem = {
+  id: number;
+  projectName: string;
+  description?: string;
+  files?: string;
+  projectType: string;
   locale: string;
-}
+  timestamp: string;
+};
 
-export default async function Projects({ params }: { params: PageParams }) {
-  const awaitedParams = await params;
-  const { locale } = awaitedParams;
-  const t = getTranslations(locale).projects || {
-    title: locale === "fa" ? "پروژه‌های ثبت‌شده" : "Registered Projects",
-  };
+export default function ProjectsPage() {
+  const params = useParams();
+  const locale = params?.locale as string;
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
 
-  const db = await getDb();
-  const projects = await db.all("SELECT * FROM projects");
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const response = await fetch(`/${locale}/api/projects`);
+      const data: ProjectItem[] = await response.json();
+      setProjects(data);
+    };
+    fetchProjects();
+  }, [locale]);
 
   return (
-    <div className="min-h-screen p-8 flex flex-col items-center">
-      <LanguageSwitcher />
-      <h1 className="text-3xl font-bold mb-6">{t.title}</h1>
-      <ul className="w-full max-w-md">
-        {projects.map((project: any) => (
-          <li key={project.id} className="mb-4 p-4 border rounded">
-            <p>
-              <strong>{locale === "fa" ? "نام پروژه" : "Project Name"}:</strong> {project.projectName}
-            </p>
-            <p>
-              <strong>{locale === "fa" ? "نوع پروژه" : "Project Type"}:</strong> {project.projectType}
-            </p>
-            <p>
-              <strong>{locale === "fa" ? "زبان" : "Locale"}:</strong> {project.locale}
-            </p>
-            <p>
-              <strong>{locale === "fa" ? "زمان ثبت" : "Timestamp"}:</strong> {project.timestamp}
-            </p>
-          </li>
-        ))}
-      </ul>
+    <div>
+      {projects.map((project) => (
+        <div key={project.id}>{project.projectName}</div>
+      ))}
     </div>
   );
-}
-
-export async function generateStaticParams() {
-  return [{ locale: "fa" }, { locale: "en" }];
 }
