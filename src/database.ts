@@ -46,6 +46,7 @@ export async function getDb(): Promise<Database<sqlite3.Database, sqlite3.Statem
       title TEXT NOT NULL,
       description TEXT,
       projectType TEXT NOT NULL,
+      files TEXT,  -- مسیر فایل‌ها به صورت JSON
       timestamp TEXT NOT NULL
     )
   `);
