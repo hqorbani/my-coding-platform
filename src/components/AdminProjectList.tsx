@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+// import Image from "next/image"; // فعلاً لازم نیست
 
 interface Project {
   id: number;
@@ -18,6 +19,7 @@ interface PortfolioItem {
   title: string;
   description: string;
   projectType: string;
+  files?: string; // JSON string
   timestamp: string;
 }
 
@@ -32,7 +34,7 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(initialPortfolio);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ projectName: "", projectType: "", title: "", description: "" });
-  const [newPortfolio, setNewPortfolio] = useState({ title: "", description: "", projectType: "" });
+  const [newPortfolio, setNewPortfolio] = useState({ title: "", description: "", projectType: "", files: null as FileList | null });
   const router = useRouter();
 
   const handleEditProject = (project: Project) => {
@@ -73,7 +75,6 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
         },
         body: JSON.stringify({ id }),
       });
-      console.log("Delete response status:", response.status); // دیباگ
       if (response.ok) {
         setProjects(projects.filter((project) => project.id !== id));
       }
@@ -82,13 +83,11 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
 
   const handleDownload = async (file: string) => {
     const token = localStorage.getItem("jwt_token");
-    console.log("Downloading with token:", token?.slice(0, 10) + "..."); // فقط 10 حرف اول توکن
     const response = await fetch(`/api/download?file=${encodeURIComponent(file)}`, {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
     });
-    console.log("Download response status:", response.status); // دیباگ
     if (response.ok) {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -100,7 +99,6 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } else {
-      console.log("Download failed:", await response.text()); // دیباگ خطا
       alert(locale === "fa" ? "خطا در دانلود فایل" : "Error downloading file");
     }
   };
@@ -152,19 +150,31 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
 
   const handleAddPortfolio = async () => {
     const token = localStorage.getItem("jwt_token");
+    const formData = new FormData();
+    formData.append("title", newPortfolio.title);
+    formData.append("description", newPortfolio.description);
+    formData.append("projectType", newPortfolio.projectType);
+    formData.append("timestamp", new Date().toISOString());
+    if (newPortfolio.files) {
+      Array.from(newPortfolio.files).forEach((file) => formData.append("files", file));
+    }
+
     const response = await fetch("/api/portfolio/add", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
-      body: JSON.stringify({ ...newPortfolio, timestamp: new Date().toISOString() }),
+      body: formData,
     });
 
     if (response.ok) {
       const newItem = await response.json();
+      console.log("New portfolio item:", newItem);
+      newItem.files = JSON.stringify(newItem.files); // مطمئن می‌شیم files یه رشته JSON باشه
       setPortfolio([...portfolio, newItem]);
-      setNewPortfolio({ title: "", description: "", projectType: "" });
+      setNewPortfolio({ title: "", description: "", projectType: "", files: null });
+    } else {
+      console.log("Error adding portfolio:", await response.text());
     }
   };
 
@@ -228,10 +238,7 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
                       <ul className="mt-2">
                         {JSON.parse(project.files).map((file: string, index: number) => (
                           <li key={index}>
-                            <button
-                              onClick={() => handleDownload(file)}
-                              className="text-blue-600 underline"
-                            >
+                            <button onClick={() => handleDownload(file)} className="text-blue-600 underline">
                               {getFileName(file)}
                             </button>
                           </li>
@@ -284,10 +291,17 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
           <option value="trading-bot">{locale === "fa" ? "ربات معاملاتی" : "Trading Bot"}</option>
           <option value="desktop">{locale === "fa" ? "نرم‌افزار دسکتاپ" : "Desktop Software"}</option>
         </select>
+        <input
+          type="file"
+          multiple
+          onChange={(e) => setNewPortfolio({ ...newPortfolio, files: e.target.files })}
+          className="p-2 border rounded mr-2"
+        />
         <button onClick={handleAddPortfolio} className="px-4 py-2 bg-green-600 text-white rounded">
           {locale === "fa" ? "اضافه کردن" : "Add"}
         </button>
       </div>
+
       <ul className="w-full max-w-lg">
         {portfolio.map((item) => (
           <li key={item.id} className="mb-4 p-4 border rounded flex justify-between items-center">
@@ -328,6 +342,31 @@ export default function AdminProjectList({ locale, initialProjects, initialPortf
                   <p><strong>{locale === "fa" ? "توضیحات" : "Description"}:</strong> {item.description || "-"}</p>
                   <p><strong>{locale === "fa" ? "نوع پروژه" : "Project Type"}:</strong> {item.projectType}</p>
                   <p><strong>{locale === "fa" ? "زمان ثبت" : "Timestamp"}:</strong> {item.timestamp}</p>
+                  {item.files && (
+                    <div className="mt-2">
+                      <strong>{locale === "fa" ? "تصاویر" : "Images"}:</strong>
+                      <div className="flex flex-wrap gap-2">
+                        {(() => {
+                          try {
+                            const files = typeof item.files === "string" ? JSON.parse(item.files) : item.files;
+                            return files.map((file: string, index: number) => (
+                              <img
+                                key={index}
+                                src={file}
+                                alt={`${item.title} image ${index + 1}`}
+                                width={100}
+                                height={100}
+                                className="object-cover rounded"
+                              />
+                            ));
+                          } catch (e) {
+                            console.error("Error parsing files:", e, "Files value:", item.files);
+                            return <span>خطا در بارگذاری تصاویر</span>;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <button onClick={() => handleEditPortfolio(item)} className="px-3 py-1 bg-yellow-600 text-white rounded mr-2">

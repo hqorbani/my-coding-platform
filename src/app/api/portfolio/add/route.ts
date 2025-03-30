@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // آپلود فایل‌ها
-    const uploadDir = path.join(process.cwd(), "uploads");
+    const uploadDir = path.join(process.cwd(), "public/uploads");
     await fs.mkdir(uploadDir, { recursive: true });
     const filePaths: string[] = [];
 
