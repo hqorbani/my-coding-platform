@@ -20,7 +20,10 @@ export default function LoginForm({ locale }: LoginFormProps) {
       body: JSON.stringify({ username, password }),
     });
 
+    console.log("Login response status:", response.status); // دیباگ
     if (response.ok) {
+      const { token } = await response.json();
+      console.log("Received token:", token); // دیباگ
       router.push(`/${locale}/admin`);
     } else {
       alert(locale === "fa" ? "نام کاربری یا رمز اشتباه است" : "Invalid username or password");
